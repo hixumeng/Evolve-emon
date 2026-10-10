@@ -1,0 +1,10 @@
+evo.emonxu.top {
+    root * /srv/evolve-emon/current
+    encode zstd gzip
+    file_server
+}
+
+# The server has an explicit :80 catch-all, so add these lines inside
+# its existing :80 block to ensure domain requests redirect to HTTPS:
+# @evolveDomain host evo.emonxu.top
+# redir @evolveDomain https://evo.emonxu.top{uri} permanent

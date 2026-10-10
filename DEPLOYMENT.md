@@ -3,6 +3,7 @@
 定制版仓库：https://github.com/hixumeng/Evolve-emon
 原项目：https://github.com/pmotschmann/Evolve
 目标服务器：192.236.223.253
+正式访问地址：https://evo.emonxu.top/
 
 ## 本地开发（macOS / Linux）
 
@@ -75,6 +76,16 @@ curl -I -H 'Host: 192.236.223.253' http://127.0.0.1/
 首次改动 Caddy 配置前保留带时间戳的备份。
 `deploy/deploy-caddy.sh` 可在服务器上执行：传入已上传的站点压缩包路径和唯一版本标识。
 脚本先验证配置，然后切换软链接、平滑加载配置并检查资源；失败时回退配置和版本链接。
+
+### 域名访问
+
+`evo.emonxu.top` 的 A 记录指向 `192.236.223.253`。
+在 Caddyfile 中加入 `deploy/Caddyfile.domain.example` 的域名站点块，
+使用相同的 `/srv/evolve-emon/current` 发布目录，Caddy 自动管理 HTTPS 证书。
+服务器已有显式 `:80` 兜底站点，因此同时在该站点内添加示例中的域名 HTTPS 跳转。
+正式地址为 https://evo.emonxu.top/ ，HTTP 域名访问跳转至 HTTPS。
+IP 地址暂时保留，用于导出旧存档。IP 与 HTTPS 域名属于不同浏览器存储来源，
+需要在 IP 站点导出存档，再到域名站点导入。
 
 ## 存档与外部资源
 
