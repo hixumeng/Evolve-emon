@@ -61,17 +61,16 @@ docker compose down
 目标服务器已使用 Caddy，实际采用静态文件部署，不安装 Docker。
 将 `dist/` 上传至 `/srv/evolve-emon/releases/<版本>/`，用
 `/srv/evolve-emon/current` 软链接指向当前版本。
-在 `/etc/caddy/Caddyfile` 现有 `:80` 站点内添加
-`deploy/Caddyfile.ip.example` 中的 IP 路由；默认的 `respond 404`
-放入最后的无匹配条件 `handle` 块中。保留原有域名路由。
+在 `/etc/caddy/Caddyfile` 中配置 `deploy/Caddyfile.domain.example` 的域名站点，
+并在现有 `:80` 站点内添加该域名的 HTTPS 跳转。保留原有站点路由。
 
 ```sh
 caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
 systemctl reload caddy
-curl -I -H 'Host: 192.236.223.253' http://127.0.0.1/
+curl -I --resolve evo.emonxu.top:443:127.0.0.1 https://evo.emonxu.top/
 ```
 
-访问地址：http://192.236.223.253/ 。后续更新只需上传新构建并切换 `current` 软链接，
+访问地址：https://evo.emonxu.top/ 。后续更新只需上传新构建并切换 `current` 软链接，
 无需重启已有站点。需要回退时，将 `current` 指向前一个发布目录。
 首次改动 Caddy 配置前保留带时间戳的备份。
 `deploy/deploy-caddy.sh` 可在服务器上执行：传入已上传的站点压缩包路径和唯一版本标识。
@@ -84,8 +83,8 @@ curl -I -H 'Host: 192.236.223.253' http://127.0.0.1/
 使用相同的 `/srv/evolve-emon/current` 发布目录，Caddy 自动管理 HTTPS 证书。
 服务器已有显式 `:80` 兜底站点，因此同时在该站点内添加示例中的域名 HTTPS 跳转。
 正式地址为 https://evo.emonxu.top/ ，HTTP 域名访问跳转至 HTTPS。
-IP 地址暂时保留，用于导出旧存档。IP 与 HTTPS 域名属于不同浏览器存储来源，
-需要在 IP 站点导出存档，再到域名站点导入。
+旧 IP 游戏路由已移除，直接通过 IP 访问 HTTP 首页返回 404。
+部署脚本检查域名站点已配置，不会重新创建 IP 游戏入口。
 
 ## 存档与外部资源
 

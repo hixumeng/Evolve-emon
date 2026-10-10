@@ -26,29 +26,16 @@ candidate=$(mktemp /etc/caddy/Caddyfile.evolve.XXXXXX)
 trap 'rm -f "$candidate"' EXIT
 python3 - "$config" "$candidate" <<'PY'
 import pathlib
+import re
 import sys
 
 original = pathlib.Path(sys.argv[1]).read_text()
-marker = '\t@evolve host 192.236.223.253\n'
-if marker in original:
-    if '\t\troot * /srv/evolve-emon/current\n' not in original:
-        raise SystemExit('Existing Evolve route uses a different root; inspect before deployment')
-    updated = original
-else:
-    needle = '\trespond 404\n}'
-    if not original.startswith(':80 {\n') or original.count(needle) != 1:
-        raise SystemExit('Caddy config differs from the inspected baseline; inspect before deployment')
-    updated = original.replace(needle, '''\t@evolve host 192.236.223.253
-\thandle @evolve {
-\t\troot * /srv/evolve-emon/current
-\t\tencode zstd gzip
-\t\tfile_server
-\t}
-\thandle {
-\t\trespond 404
-\t}
-}''', 1)
-pathlib.Path(sys.argv[2]).write_text(updated)
+if '\t@evolve host 192.236.223.253\n' in original:
+    raise SystemExit('Remove the retired IP game route before deployment')
+site = re.search(r'^evo\.emonxu\.top\s*\{([^{}]*)\}', original, re.M)
+if not site or not re.search(r'^\s*root \* /srv/evolve-emon/current\s*$', site[1], re.M):
+    raise SystemExit('Configure the evo.emonxu.top site before deployment')
+pathlib.Path(sys.argv[2]).write_text(original)
 PY
 caddy validate --config "$candidate" --adapter caddyfile
 backup="$config.evolve-backup-$release_id"
@@ -78,9 +65,9 @@ if ! systemctl reload caddy; then
   exit 1
 fi
 for resource in '' evolve/main.js source.html source.tar.gz LICENSE; do
-  if ! curl --fail --silent --output /dev/null -H 'Host: 192.236.223.253' "http://127.0.0.1/$resource"; then
+  if ! curl --fail --silent --output /dev/null --resolve evo.emonxu.top:443:127.0.0.1 "https://evo.emonxu.top/$resource"; then
     rollback
     exit 1
   fi
 done
-printf 'Deployed %s\nConfig backup: %s\nURL: http://192.236.223.253/\n' "$release" "$backup"
+printf 'Deployed %s\nConfig backup: %s\nURL: https://evo.emonxu.top/\n' "$release" "$backup"
