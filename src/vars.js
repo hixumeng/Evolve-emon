@@ -1,4 +1,5 @@
 import { normalizeProductionMultiplier } from './production-multiplier.js';
+import { normalizeCustomMultiplier } from './custom-multipliers.js';
 
 export var save = window.localStorage;
 export var global = {
@@ -1322,6 +1323,8 @@ if (!global['settings']){
 
 // Old saves retain original production; invalid imported values fall back to 1x.
 global.settings.productionMultiplier = normalizeProductionMultiplier(global.settings.productionMultiplier);
+global.settings.capacityMultiplier = normalizeCustomMultiplier('capacityMultiplier', global.settings.capacityMultiplier);
+global.settings.buildingCostMultiplier = normalizeCustomMultiplier('buildingCostMultiplier', global.settings.buildingCostMultiplier);
 
 if (!global.settings['space']){
     global.settings['space'] = {};

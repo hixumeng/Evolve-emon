@@ -22,7 +22,7 @@ import { index, mainVue, initTabs, loadTab } from './index.js';
 import { setWeather, seasonDesc, astrologySign, astroVal } from './seasons.js';
 import { getTopChange } from './wiki/change.js';
 import { enableDebug, updateDebugData } from './debug.js';
-import { productionMultiplier } from './functions.js';
+import { productionMultiplier, capacityMultiplier } from './functions.js';
 
 {
     $(document).ready(function() {
@@ -8157,8 +8157,8 @@ function midLoop(){
             caps['DNA'] += global.evolution['eukaryotic_cell'].count * effect;
         }
 
-        global.resource.RNA.max = caps['RNA'];
-        global.resource.DNA.max = caps['DNA'];
+        global.resource.RNA.max = caps['RNA'] * capacityMultiplier('RNA');
+        global.resource.DNA.max = caps['DNA'] * capacityMultiplier('DNA');
 
         Object.keys(actions.evolution).forEach(function (action){
             if (actions.evolution[action] && actions.evolution[action].cost){
@@ -10362,7 +10362,11 @@ function midLoop(){
                 breakdown.c[res][loc('resource_Crates_plural')] = crate+'v';
                 breakdown.c[res][loc('resource_Containers_plural')] = container+'v';
             }
-            global.resource[res].max = caps[res];
+            const customCapacity = capacityMultiplier(res);
+            if (customCapacity !== 1 && breakdown.c[res]){
+                breakdown.c[res][loc('capacity_multiplier')] = `${(customCapacity - 1) * 100}%`;
+            }
+            global.resource[res].max = caps[res] * customCapacity;
             if (global.resource[res].amount > global.resource[res].max && res != 'Sus'){
                 global.resource[res].amount = global.resource[res].max;
             }

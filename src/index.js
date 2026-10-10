@@ -15,6 +15,8 @@ import { renderEdenic } from './edenic.js';
 import { drawShipYard, clearShipDrag, renderTauCeti } from './truepath.js';
 import { arpa, clearGeneticsDrag } from './arpa.js';
 import { validProductionMultiplier, normalizeProductionMultiplier } from './production-multiplier.js';
+import { validCustomMultiplier, normalizeCustomMultiplier, multiplierLimits } from './custom-multipliers.js';
+import { applyCapacityMultiplier } from './functions.js';
 
 export function mainVue(){
     vBind({
@@ -22,9 +24,30 @@ export function mainVue(){
         data: {
             s: global.settings,
             productionMultiplierInput: global.settings.productionMultiplier,
-            productionMultiplierError: false
+            productionMultiplierError: false,
+            capacityMultiplierInput: global.settings.capacityMultiplier,
+            capacityMultiplierError: false,
+            buildingCostMultiplierInput: global.settings.buildingCostMultiplier,
+            buildingCostMultiplierError: false
         },
         methods: {
+            applyCustomMultiplier(key){
+                if (!validCustomMultiplier(key, this[`${key}Input`])){
+                    this[`${key}Error`] = true;
+                    return;
+                }
+                const previous = global.settings[key];
+                global.settings[key] = normalizeCustomMultiplier(key, this[`${key}Input`]);
+                this[`${key}Input`] = global.settings[key];
+                this[`${key}Error`] = false;
+                if (key === 'capacityMultiplier'){ applyCapacityMultiplier(previous); }
+                clearPopper();
+                save.setItem('evolved',LZString.compressToUTF16(JSON.stringify(global)));
+            },
+            resetCustomMultiplier(key){
+                this[`${key}Input`] = 1;
+                this.applyCustomMultiplier(key);
+            },
             applyProductionMultiplier(){
                 if (!validProductionMultiplier(this.productionMultiplierInput)){
                     this.productionMultiplierError = true;
@@ -1314,6 +1337,25 @@ export function index(){
     }
 
     // Settings Tab
+    const customMultiplierSettings = [
+        ['capacityMultiplier', 'capacity_multiplier'],
+        ['buildingCostMultiplier', 'building_cost_multiplier']
+    ].map(([key, label]) => {
+        const title = key[0].toUpperCase() + key.slice(1);
+        return `<div class="custom-multiplier-setting">
+            <label for="${key}">{{ '${label}' | label }}</label>
+            <div class="production-multiplier-controls">
+                <input id="${key}" class="input" type="number" min="${multiplierLimits[key].min}" max="${multiplierLimits[key].max}" step="any"
+                    v-model="${key}Input" :aria-invalid="${key}Error ? 'true' : 'false'"
+                    aria-describedby="${key}Help ${key}Error" @keyup.enter="applyCustomMultiplier('${key}')">
+                <button id="apply${title}" class="button" @click="applyCustomMultiplier('${key}')">{{ 'production_multiplier_apply' | label }}</button>
+                <button id="reset${title}" class="button" @click="resetCustomMultiplier('${key}')">{{ 'production_multiplier_reset' | label }}</button>
+                <span>{{ 'production_multiplier_current' | label }} {{ s.${key} }}×</span>
+            </div>
+            <p id="${key}Help">{{ '${label}_help' | label }}</p>
+            <p id="${key}Error" class="has-text-danger" v-if="${key}Error" role="alert">{{ '${label}_invalid' | label }}</p>
+        </div>`;
+    }).join('');
     let settings = $(`<b-tab-item id="settings" class="settings sticky">
         <template slot="header">
             {{ 'tab_settings' | label }}
@@ -1331,6 +1373,7 @@ export function index(){
             <p id="productionMultiplierHelp">{{ 'production_multiplier_help' | label }}</p>
             <p id="productionMultiplierError" class="has-text-danger" v-if="productionMultiplierError" role="alert">{{ 'production_multiplier_invalid' | label }}</p>
         </div>
+        ${customMultiplierSettings}
         <div class="theme">
             <span>{{ 'theme' | label }} </span>
             <b-dropdown hoverable>

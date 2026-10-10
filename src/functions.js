@@ -14,6 +14,7 @@ import { astrologySign, astroVal } from './seasons.js';
 import { shipCosts, TPShipDesc } from './truepath.js';
 import { mechCost, mechDesc } from './portal.js';
 import { normalizeProductionMultiplier } from './production-multiplier.js';
+import { normalizeCustomMultiplier, isStoredResource } from './custom-multipliers.js';
 
 export function productionMultiplier(){
     return normalizeProductionMultiplier(global.settings.productionMultiplier);
@@ -1761,6 +1762,44 @@ export function calcPrestige(type,inputs){
     return gains;
 }
 
+export function capacityMultiplier(resource){
+    return isStoredResource(resource, global.race.species)
+        ? normalizeCustomMultiplier('capacityMultiplier', global.settings.capacityMultiplier) : 1;
+}
+
+export function applyCapacityMultiplier(previous){
+    Object.keys(global.resource).forEach(function(res){
+        const resource = global.resource[res];
+        if (isStoredResource(res, global.race.species) && resource.max >= 0){
+            resource.max *= capacityMultiplier(res) / previous;
+            resource.amount = Math.min(resource.amount, resource.max);
+        }
+    });
+}
+
+function customBuildingCosts(costs, c_action, offset, wiki){
+    if (wiki){ return costs; }
+    const [region, name] = (c_action.id || '').split('-');
+    const evolutionBuildings = ['membrane', 'organelles', 'nucleus', 'eukaryotic_cell', 'mitochondria'];
+    const buildingRegions = ['city', 'space', 'interstellar', 'galaxy', 'portal', 'eden', 'tauceti'];
+    const state = global[c_action.region || region];
+    const building = c_action.customBuildingCost
+        || (region === 'evolution' && evolutionBuildings.includes(name))
+        || (buildingRegions.includes(region) && (typeof c_action.struct === 'function'
+            || (state && state[name] && typeof state[name].count === 'number')));
+    if (!building){ return costs; }
+    const adjusted = {};
+    Object.keys(costs).forEach(function(res){
+        // Keep non-resource requirements and population costs intact.
+        adjusted[res] = global.resource[res] && isStoredResource(res, global.race.species)
+            ? function(){
+                const value = costs[res](offset, wiki);
+                return value > 0 ? value * normalizeCustomMultiplier('buildingCostMultiplier', global.settings.buildingCostMultiplier) : value;
+            } : costs[res];
+    });
+    return adjusted;
+}
+
 export function adjustCosts(c_action, offset, wiki){
     let costs = c_action.cost || {};
     if ((costs['RNA'] || costs['DNA']) && global.genes['evolve']){
@@ -1770,7 +1809,7 @@ export function adjustCosts(c_action, offset, wiki){
                 newCosts[res] = function(){ return Math.round(costs[res](offset, wiki) * 0.8); }
             }
         });
-        return newCosts;
+        return customBuildingCosts(newCosts, c_action, offset, wiki);
     }
     costs = bloatAdjust(costs, offset, wiki);
     costs = truthAdjust(costs, c_action, offset, wiki);
@@ -1787,7 +1826,7 @@ export function adjustCosts(c_action, offset, wiki){
     costs = dictatorAdjust(costs, offset, wiki);
     costs = lMatAdjust(costs, c_action, offset, wiki);
     costs = nexusAdjust(costs, c_action, offset, wiki);
-    return craftAdjust(costs, offset, wiki);
+    return customBuildingCosts(craftAdjust(costs, offset, wiki), c_action, offset, wiki);
 }
 
 function bloatAdjust(costs, offset, wiki){

@@ -1706,7 +1706,7 @@ function checkArpaCosts(costs){
 
 export function arpaAdjustCosts(costs,offset,wiki){
     costs = creativeAdjust(costs,offset,wiki);
-    return adjustCosts({ 'cost': costs },offset,wiki);
+    return adjustCosts({ 'cost': costs, customBuildingCost: true },offset,wiki);
 }
 
 function creativeAdjust(costs,offset,wiki){

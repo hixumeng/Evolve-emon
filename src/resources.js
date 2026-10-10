@@ -1,3 +1,4 @@
+import { capacityMultiplier } from './functions.js';
 import { global, tmp_vars, keyMultiplier, breakdown, sizeApproximation, p_on, support_on, active_rituals } from './vars.js';
 import { vBind, clearElement, modRes, flib, calc_mastery, calcPillar, eventActive, easterEgg, trickOrTreat, popover, harmonyEffect, darkEffect, hoovedRename, messageQueue } from './functions.js';
 import { traits, fathomCheck } from './races.js';
@@ -1846,7 +1847,7 @@ function unassignCrate(res){
         global.resource.Crates.amount += keyMutipler;
         global.resource.Crates.max += keyMutipler;
         global.resource[res].crates -= keyMutipler;
-        global.resource[res].max -= (cap * keyMutipler);
+        global.resource[res].max -= (cap * keyMutipler * capacityMultiplier(res));
     }
 }
 
@@ -1860,7 +1861,7 @@ function assignCrate(res){
         global.resource.Crates.amount -= keyMutipler;
         global.resource.Crates.max -= keyMutipler;
         global.resource[res].crates += keyMutipler;
-        global.resource[res].max += (cap * keyMutipler);
+        global.resource[res].max += (cap * keyMutipler * capacityMultiplier(res));
     }
 }
 
@@ -1874,7 +1875,7 @@ function unassignContainer(res){
         global.resource.Containers.amount += keyMutipler;
         global.resource.Containers.max += keyMutipler;
         global.resource[res].containers -= keyMutipler;
-        global.resource[res].max -= (cap * keyMutipler);
+        global.resource[res].max -= (cap * keyMutipler * capacityMultiplier(res));
     }
 }
 
@@ -1888,7 +1889,7 @@ function assignContainer(res){
         global.resource.Containers.amount -= keyMutipler;
         global.resource.Containers.max -= keyMutipler;
         global.resource[res].containers += keyMutipler;
-        global.resource[res].max += (cap * keyMutipler);
+        global.resource[res].max += (cap * keyMutipler * capacityMultiplier(res));
     }
 }
 
