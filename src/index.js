@@ -14,14 +14,32 @@ import { renderFortress, buildFortress, drawMechLab, clearMechDrag, drawHellObse
 import { renderEdenic } from './edenic.js';
 import { drawShipYard, clearShipDrag, renderTauCeti } from './truepath.js';
 import { arpa, clearGeneticsDrag } from './arpa.js';
+import { validProductionMultiplier, normalizeProductionMultiplier } from './production-multiplier.js';
 
 export function mainVue(){
     vBind({
         el: '#mainColumn div:first-child',
         data: {
-            s: global.settings
+            s: global.settings,
+            productionMultiplierInput: global.settings.productionMultiplier,
+            productionMultiplierError: false
         },
         methods: {
+            applyProductionMultiplier(){
+                if (!validProductionMultiplier(this.productionMultiplierInput)){
+                    this.productionMultiplierError = true;
+                    return;
+                }
+                global.settings.productionMultiplier = normalizeProductionMultiplier(this.productionMultiplierInput);
+                this.productionMultiplierInput = global.settings.productionMultiplier;
+                this.productionMultiplierError = false;
+                clearPopper();
+                save.setItem('evolved',LZString.compressToUTF16(JSON.stringify(global)));
+            },
+            resetProductionMultiplier(){
+                this.productionMultiplierInput = 1;
+                this.applyProductionMultiplier();
+            },
             swapTab(tab){
                 if (!global.settings.tabLoad){
                     loadTab(tab);
@@ -1300,6 +1318,19 @@ export function index(){
         <template slot="header">
             {{ 'tab_settings' | label }}
         </template>
+        <div class="production-multiplier-setting">
+            <label for="productionMultiplier">{{ 'production_multiplier' | label }}</label>
+            <div class="production-multiplier-controls">
+                <input id="productionMultiplier" class="input" type="number" min="0.1" max="1000" step="any"
+                    v-model="productionMultiplierInput" :aria-invalid="productionMultiplierError ? 'true' : 'false'"
+                    aria-describedby="productionMultiplierHelp productionMultiplierError" @keyup.enter="applyProductionMultiplier">
+                <button id="applyProductionMultiplier" class="button" @click="applyProductionMultiplier">{{ 'production_multiplier_apply' | label }}</button>
+                <button id="resetProductionMultiplier" class="button" @click="resetProductionMultiplier">{{ 'production_multiplier_reset' | label }}</button>
+                <span>{{ 'production_multiplier_current' | label }} {{ s.productionMultiplier }}×</span>
+            </div>
+            <p id="productionMultiplierHelp">{{ 'production_multiplier_help' | label }}</p>
+            <p id="productionMultiplierError" class="has-text-danger" v-if="productionMultiplierError" role="alert">{{ 'production_multiplier_invalid' | label }}</p>
+        </div>
         <div class="theme">
             <span>{{ 'theme' | label }} </span>
             <b-dropdown hoverable>

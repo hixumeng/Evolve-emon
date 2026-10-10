@@ -13,6 +13,11 @@ import { universeLevel, universeAffix, alevel } from './achieve.js';
 import { astrologySign, astroVal } from './seasons.js';
 import { shipCosts, TPShipDesc } from './truepath.js';
 import { mechCost, mechDesc } from './portal.js';
+import { normalizeProductionMultiplier } from './production-multiplier.js';
+
+export function productionMultiplier(){
+    return normalizeProductionMultiplier(global.settings.productionMultiplier);
+}
 
 var popperRef = false;
 export function popover(id,content,opts){

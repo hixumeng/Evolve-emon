@@ -1,3 +1,5 @@
+import { normalizeProductionMultiplier } from './production-multiplier.js';
+
 export var save = window.localStorage;
 export var global = {
     seed: 1,
@@ -1317,6 +1319,9 @@ if (!global['settings']){
         icon: 'star'
     };
 }
+
+// Old saves retain original production; invalid imported values fall back to 1x.
+global.settings.productionMultiplier = normalizeProductionMultiplier(global.settings.productionMultiplier);
 
 if (!global.settings['space']){
     global.settings['space'] = {};

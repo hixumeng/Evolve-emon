@@ -22,6 +22,7 @@ import { index, mainVue, initTabs, loadTab } from './index.js';
 import { setWeather, seasonDesc, astrologySign, astroVal } from './seasons.js';
 import { getTopChange } from './wiki/change.js';
 import { enableDebug, updateDebugData } from './debug.js';
+import { productionMultiplier } from './functions.js';
 
 {
     $(document).ready(function() {
@@ -1192,6 +1193,12 @@ function fastLoop(){
         let entropy = global.tech.syphon / 8;
         breakdown.p['Global'][loc('arpa_syphon_damage')] = `-${entropy}%`;
         global_multiplier *= 1 - (entropy / 100);
+    }
+
+    const customProduction = productionMultiplier();
+    global_multiplier *= customProduction;
+    if (customProduction !== 1){
+        breakdown.p['Global'][loc('production_multiplier')] = `${(customProduction - 1) * 100}%`;
     }
 
     let resList = [

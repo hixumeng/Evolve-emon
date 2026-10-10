@@ -17,6 +17,7 @@ import { techList, techPath } from './tech.js';
 import { defineGovernor, govActive, removeTask, gov_tasks } from './governor.js';
 import { bioseed } from './resets.js';
 import { loadTab } from './index.js';
+import { productionMultiplier } from './functions.js';
 
 export const actions = {
     evolution: {
@@ -24,13 +25,13 @@ export const actions = {
             id: 'evolution-rna',
             title: loc('resource_RNA_name'),
             desc(){
-                let rna = global.race['rapid_mutation'] ? 2 : 1;
+                let rna = (global.race['rapid_mutation'] ? 2 : 1) * productionMultiplier();
                 return loc('evo_rna',[rna]);
             },
             condition(){ return global.resource.hasOwnProperty('RNA') && global.resource.RNA.display && !global.race['evoFinalMenu']; },
             action(args){
                 if(global['resource']['RNA'].amount < global['resource']['RNA'].max){
-                    modRes('RNA',global.race['rapid_mutation'] ? 2 : 1,true);
+                    modRes('RNA',(global.race['rapid_mutation'] ? 2 : 1) * productionMultiplier(),true);
                 }
                 return false;
             },
@@ -39,17 +40,17 @@ export const actions = {
         dna: {
             id: 'evolution-dna',
             title: loc('evo_dna_title'),
-            desc: loc('evo_dna_desc'),
+            desc(){ return loc('emon_evo_dna_desc',[productionMultiplier()]); },
             condition(){ return global.resource.hasOwnProperty('DNA') && global.resource.DNA.display && global.resource.DNA.amount < global.resource.DNA.max && !global.race['evoFinalMenu']; },
             cost: { RNA(){ return 2; } },
             action(args){
                 if (global['resource']['RNA'].amount >= 2 && global['resource']['DNA'].amount < global['resource']['DNA'].max){
                     modRes('RNA',-2,true);
-                    modRes('DNA',1,true);
+                    modRes('DNA',productionMultiplier(),true);
                 }
                 return false;
             },
-            effect: loc('evo_dna_effect'),
+            effect(){ return loc('emon_evo_dna_effect',[productionMultiplier()]); },
             queue_complete(){ return 0; }
         },
         membrane: {
@@ -85,7 +86,7 @@ export const actions = {
                 if (global.tech['evo'] && global.tech.evo >= 2){
                     rna++;
                 }
-                return loc('evo_organelles_effect',[rna]);
+                return loc('evo_organelles_effect',[rna * productionMultiplier()]);
             },
             action(args){
                 if (payCosts($(this)[0])){
@@ -106,7 +107,7 @@ export const actions = {
             },
             effect(){
                 let dna = (global.tech['evo'] && global.tech.evo >= 5) ? 2 : 1;
-                return loc('evo_nucleus_effect',[dna]);
+                return loc('evo_nucleus_effect',[dna * productionMultiplier()]);
             },
             action(args){
                 if (payCosts($(this)[0])){
@@ -1142,7 +1143,7 @@ export const actions = {
                         modRes('Mana',-1,true);
                     }
                 }
-                return gain;
+                return gain * productionMultiplier();
             },
             touchlabel: loc(`harvest`)
         },
@@ -1195,7 +1196,7 @@ export const actions = {
                         modRes('Mana',-1,true);
                     }
                 }
-                return gain;
+                return gain * productionMultiplier();
             },
             touchlabel: loc(`harvest`)
         },
@@ -1246,7 +1247,7 @@ export const actions = {
                         modRes('Mana',-1,true);
                     }
                 }
-                return gain;
+                return gain * productionMultiplier();
             },
             touchlabel: loc(`harvest`)
         },
@@ -1296,7 +1297,7 @@ export const actions = {
                         modRes('Mana',-1,true);
                     }
                 }
-                return gain;
+                return gain * productionMultiplier();
             },
             touchlabel: loc(`harvest`)
         },
@@ -1322,6 +1323,7 @@ export const actions = {
                     if (global.genes['enhance']){
                         gain *= 2;
                     }
+                    gain *= productionMultiplier();
                     if (!global.race['smoldering']){
                         if (global['resource']['Lumber'].amount < global['resource']['Lumber'].max){
                             modRes('Lumber',gain,true);
