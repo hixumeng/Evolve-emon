@@ -1,0 +1,8 @@
+# Add inside the existing :80 site. Retain existing domain routes.
+# Put any fallback response in an unmatched handle block.
+@evolve host 192.236.223.253
+handle @evolve {
+    root * /srv/evolve-emon/current
+    encode zstd gzip
+    file_server
+}

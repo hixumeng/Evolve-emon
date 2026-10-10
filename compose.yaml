@@ -1,0 +1,9 @@
+name: evolve-emon
+services:
+  game:
+    build:
+      context: .
+    image: evolve-emon:local
+    restart: unless-stopped
+    ports:
+      - "${EVOLVE_BIND:-127.0.0.1}:${EVOLVE_PORT:-8080}:80"

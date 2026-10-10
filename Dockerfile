@@ -1,5 +1,5 @@
 # Global ARGs
-ARG BUILDER_IMAGE=node:16.20
+ARG BUILDER_IMAGE=node:24-bookworm-slim
 ARG NGINX_IMAGE=nginx:1.26.1-alpine
 ARG WORKSPACE=/workspace
 ARG WEB_PATH=/usr/share/nginx/html
@@ -10,11 +10,8 @@ ARG WORKSPACE
 
 WORKDIR $WORKSPACE
 COPY ./ $WORKSPACE/
-RUN npm install \
-    && npm run build \
-    && rm -rf dist \
-    && mkdir dist \
-    && cp -r *.html *.ico LICENSE evolve lib font strings wiki dist
+RUN npm ci --no-audit --no-fund \
+    && npm run build:static
 
 # Web server
 FROM $NGINX_IMAGE

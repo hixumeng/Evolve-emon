@@ -3,7 +3,11 @@
   "version": "1.4.10",
   "description": "Evolve Idle",
   "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
   "scripts": {
+    "build:static": "npm run build && node scripts/package-static.mjs",
     "build": "npm run evolve && npm run evolve-less && npm run wiki && npm run wiki-less",
     "build-debug": "npm run evolve-debug && npm run evolve-less && npm run wiki-debug && npm run wiki-less",
     "build-win": "npm run evolve && npm run evolve-less-win && npm run wiki && npm run wiki-less-win",
@@ -41,8 +45,6 @@
     "gh-pages": "^6.1.1"
   },
   "dependencies": {
-    "esbuild": "0.25.0",
-    "node": "^16.1.0",
-    "npmcli": "^1.2.2"
+    "esbuild": "0.25.0"
   }
 }
