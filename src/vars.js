@@ -1325,6 +1325,7 @@ if (!global['settings']){
 global.settings.productionMultiplier = normalizeProductionMultiplier(global.settings.productionMultiplier);
 global.settings.capacityMultiplier = normalizeCustomMultiplier('capacityMultiplier', global.settings.capacityMultiplier);
 global.settings.buildingCostMultiplier = normalizeCustomMultiplier('buildingCostMultiplier', global.settings.buildingCostMultiplier);
+global.settings.forceMaxMorale = global.settings.forceMaxMorale === true;
 
 if (!global.settings['space']){
     global.settings['space'] = {};

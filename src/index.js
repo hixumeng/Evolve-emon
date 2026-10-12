@@ -31,6 +31,10 @@ export function mainVue(){
             buildingCostMultiplierError: false
         },
         methods: {
+            saveCustomSettings(){
+                clearPopper();
+                save.setItem('evolved',LZString.compressToUTF16(JSON.stringify(global)));
+            },
             applyCustomMultiplier(key){
                 if (!validCustomMultiplier(key, this[`${key}Input`])){
                     this[`${key}Error`] = true;
@@ -1374,6 +1378,11 @@ export function index(){
             <p id="productionMultiplierError" class="has-text-danger" v-if="productionMultiplierError" role="alert">{{ 'production_multiplier_invalid' | label }}</p>
         </div>
         ${customMultiplierSettings}
+        <div class="custom-multiplier-setting">
+            <b-switch id="forceMaxMorale" v-model="s.forceMaxMorale" @input="saveCustomSettings"
+                aria-describedby="forceMaxMoraleHelp">{{ 'force_max_morale' | label }}</b-switch>
+            <p id="forceMaxMoraleHelp">{{ 'force_max_morale_help' | label }}</p>
+        </div>
         <div class="theme">
             <span>{{ 'theme' | label }} </span>
             <b-dropdown hoverable>

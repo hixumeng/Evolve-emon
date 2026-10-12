@@ -495,6 +495,9 @@ popover('morale',
         container.append(`<div class="modal_bd sum"><span>${loc('morale_total')}</span> <span class="has-text-warning"> ${+(total).toFixed(1)}%</span></div>`);
         container.append(`<div class="modal_bd"><span>${loc('morale_max')}</span> <span class="has-text-${total > moraleCap ? 'caution' : 'warning'}"> ${+(moraleCap).toFixed(1)}%</span></div>`);
         container.append(`<div class="modal_bd"><span>${loc('morale_current')}</span> <span class="has-text-warning"> ${+(global.city.morale.current).toFixed(1)}%</span></div>`);
+        if (global.settings.forceMaxMorale){
+            container.append(`<p>${loc('force_max_morale_active')}</p>`);
+        }
 
         return undefined;
     },
@@ -3279,6 +3282,9 @@ function fastLoop(){
             morale = moraleCap + (morale - moraleCap) * gasVal / 100;
         }
         global.city.morale.cap = moraleCap;
+        if (global.settings.forceMaxMorale){
+            morale = moraleCap;
+        }
         global.city.morale.current = morale;
 
         if (global.city.morale.current < 100){
