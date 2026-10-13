@@ -3727,6 +3727,26 @@ a {
         }
     }
 
+    .prestige-amount-settings {
+        margin: .5rem 0 1rem;
+        summary { cursor: pointer; font-weight: bold; }
+        p { margin: .4rem 0; font-size: .875rem; }
+        .prestige-amount-grid {
+            display: grid;
+            grid-template-columns: ~"repeat(auto-fit, minmax(min(100%, 24rem), 1fr))";
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .prestige-amount-row >label { font-weight: bold; }
+        .prestige-amount-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: .5rem;
+            input { width: 10rem; }
+        }
+    }
+
     .importExport,
     .stringPack {
         margin-top: 1rem;

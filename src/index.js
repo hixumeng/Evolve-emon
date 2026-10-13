@@ -17,12 +17,17 @@ import { arpa, clearGeneticsDrag } from './arpa.js';
 import { validProductionMultiplier, normalizeProductionMultiplier } from './production-multiplier.js';
 import { validCustomMultiplier, normalizeCustomMultiplier, multiplierLimits } from './custom-multipliers.js';
 import { applyCapacityMultiplier } from './functions.js';
+import { editablePrestigeResources, prestigeAmountMax, validPrestigeAmount } from './custom-prestige.js';
 
 export function mainVue(){
     vBind({
         el: '#mainColumn div:first-child',
         data: {
             s: global.settings,
+            prestige: global.prestige,
+            prestigeAmountInputs: Object.fromEntries(Object.keys(editablePrestigeResources).map(res => [res, global.prestige[res].count])),
+            prestigeAmountErrors: Object.fromEntries(Object.keys(editablePrestigeResources).map(res => [res, false])),
+            prestigeAmountApplied: Object.fromEntries(Object.keys(editablePrestigeResources).map(res => [res, false])),
             productionMultiplierInput: global.settings.productionMultiplier,
             productionMultiplierError: false,
             capacityMultiplierInput: global.settings.capacityMultiplier,
@@ -31,6 +36,22 @@ export function mainVue(){
             buildingCostMultiplierError: false
         },
         methods: {
+            applyPrestigeAmount(resource){
+                if (!validPrestigeAmount(resource, this.prestigeAmountInputs[resource])){
+                    this.prestigeAmountErrors[resource] = true;
+                    this.prestigeAmountApplied[resource] = false;
+                    return;
+                }
+                global.prestige[resource].count = Number(this.prestigeAmountInputs[resource]);
+                this.readPrestigeAmount(resource);
+                this.prestigeAmountApplied[resource] = true;
+                this.saveCustomSettings();
+            },
+            readPrestigeAmount(resource){
+                this.prestigeAmountInputs[resource] = global.prestige[resource].count;
+                this.prestigeAmountErrors[resource] = false;
+                this.prestigeAmountApplied[resource] = false;
+            },
             saveCustomSettings(){
                 clearPopper();
                 save.setItem('evolved',LZString.compressToUTF16(JSON.stringify(global)));
@@ -1360,6 +1381,22 @@ export function index(){
             <p id="${key}Error" class="has-text-danger" v-if="${key}Error" role="alert">{{ '${label}_invalid' | label }}</p>
         </div>`;
     }).join('');
+    const prestigeAmountSettings = Object.entries(editablePrestigeResources).map(([resource, decimals]) => `
+        <div class="prestige-amount-row">
+            <label for="prestigeAmount${resource}">{{ 'resource_${resource}_name' | label }}</label>
+            <p class="prestige-source">{{ 'prestige_amount_source_${resource}' | label }}</p>
+            <div class="prestige-amount-controls">
+                <input id="prestigeAmount${resource}" class="input" type="number" min="0" max="${prestigeAmountMax}" step="${10 ** -decimals}"
+                    v-model="prestigeAmountInputs.${resource}" :aria-invalid="prestigeAmountErrors.${resource} ? 'true' : 'false'"
+                    aria-describedby="prestigeAmountHelp prestigeAmountError${resource}"
+                    @input="prestigeAmountApplied.${resource} = false" @keyup.enter="applyPrestigeAmount('${resource}')">
+                <button id="applyPrestige${resource}" class="button" @click="applyPrestigeAmount('${resource}')">{{ 'production_multiplier_apply' | label }}</button>
+                <button class="button" @click="readPrestigeAmount('${resource}')">{{ 'prestige_amount_read' | label }}</button>
+                <span>{{ 'prestige_amount_current' | label }} {{ prestige.${resource}.count }}</span>
+            </div>
+            <p id="prestigeAmountError${resource}" class="has-text-danger" v-if="prestigeAmountErrors.${resource}" role="alert">{{ 'prestige_amount_invalid${decimals ? '_decimal' : ''}' | label }}</p>
+            <p class="has-text-success" v-if="prestigeAmountApplied.${resource}" role="status">{{ 'prestige_amount_applied' | label }}</p>
+        </div>`).join('');
     let settings = $(`<b-tab-item id="settings" class="settings sticky">
         <template slot="header">
             {{ 'tab_settings' | label }}
@@ -1383,6 +1420,11 @@ export function index(){
                 aria-describedby="forceMaxMoraleHelp">{{ 'force_max_morale' | label }}</b-switch>
             <p id="forceMaxMoraleHelp">{{ 'force_max_morale_help' | label }}</p>
         </div>
+        <details class="prestige-amount-settings">
+            <summary>{{ 'prestige_amount_title' | label }}</summary>
+            <p id="prestigeAmountHelp">{{ 'prestige_amount_help' | label }}</p>
+            <div class="prestige-amount-grid">${prestigeAmountSettings}</div>
+        </details>
         <div class="theme">
             <span>{{ 'theme' | label }} </span>
             <b-dropdown hoverable>
